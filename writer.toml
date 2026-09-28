@@ -1,0 +1,598 @@
+# Maximum number of non-dry-run writers assigned to any point in the hash space (config-time validation).
+max_configured_writers_per_post = 2
+# Maximum total notes that can be submitted per post, including deleted notes (runtime).
+max_published_notes_per_post = 2
+# Maximum non-deleted notes that can exist on a post (runtime).
+max_current_notes_per_post = 2
+
+# Configure enabled submission accounts.
+submission_configs = [
+  { account_name = "celebrated-ocean-seagull", daily_limit = 350 },
+  { account_name = "cheery-nutmeg-towhee", daily_limit = 350 },
+  { account_name = "great-mountain-brushturkey", daily_limit = 350 },
+  { account_name = "zappy-winter-thicketbird", daily_limit = 350 },
+  { account_name = "neighborly-rhubarb-chickadee", daily_limit = 350 },
+  { account_name = "diligent-brook-thrasher", daily_limit = 350 },
+]
+
+writer_priority = ["cn_writer_1", "prod_grok"]
+
+# Each entry is [hash_start, hash_end, policy]. Policy values:
+#   "prioritize"      — at most 1 note per post; writer_priority picks which writer wins
+#   "once_per_writer" — each writer may submit at most once per post, subject to max_published_notes_per_post and
+#                       max_current_notes_per_post
+#   "allow_revisions" — allows multiple submissions, subject to the revision rejector passing and
+#                       max_published_notes_per_post and max_current_notes_per_post
+multi_note_policy = [[0, 100, "once_per_writer"], [100, 1000, "allow_revisions"]]
+
+# Ordered list of feed sizes from most to least selective.  This ordering determines which api feeds a post should
+# be assigned to when the post is taken from a timed queue.
+feed_size_priority = ["small", "large", "xl", "xxl"]
+
+[[model_deletion_policies]]
+policy_name = "model_3r"
+min_total_ratings = 3
+score_threshold = 0.97
+max_deletion_fraction = 0.01
+
+[[model_deletion_policies]]
+policy_name = "model_5r"
+min_total_ratings = 5
+score_threshold = 0.94
+max_deletion_fraction = 0.01
+
+[api_feed_defaults]
+rl_rejector = "cn_rejector_1"
+screenshot_rejector = "screenshot_rejector"
+screenshot_rejector_pass_threshold = 0.7
+recent_context_rejector = "recent_context_rejector"
+recent_context_rejector_pass_threshold = 0.7
+submission_ranges = [[0, 1000]]
+
+[[api_feeds]]
+name = "en_small"
+feed_size = "small"
+included_languages = ["en"]
+max_post_age_seconds = 129600  # 36h
+co_threshold = -2.5
+rejector_pass_threshold = 0.71
+notable_post_threshold = 0.0
+
+[[api_feeds]]
+name = "intl_small"
+feed_size = "small"
+excluded_languages = ["en"]
+max_post_age_seconds = 129600  # 36h
+co_threshold = -1.5
+rejector_pass_threshold = 0.71
+notable_post_threshold = 0.0
+
+[[api_feeds]]
+name = "en_large"
+feed_size = "large"
+parent_feed = "en_small"
+included_languages = ["en"]
+max_post_age_seconds = 108000  # 30h
+co_threshold = -2.5
+rejector_pass_threshold = 0.72
+notable_post_threshold = 0.025
+
+[[api_feeds]]
+name = "intl_large"
+feed_size = "large"
+parent_feed = "intl_small"
+excluded_languages = ["en"]
+max_post_age_seconds = 108000  # 30h
+co_threshold = -1.5
+rejector_pass_threshold = 0.77
+notable_post_threshold = 0.04
+
+[[api_feeds]]
+name = "en_xl_high"
+feed_size = "xl"
+parent_feed = "en_small"
+included_languages = ["en"]
+max_post_age_seconds = 86400  # 24h
+co_threshold = -2.5
+rejector_pass_threshold = 0.79
+notable_post_range = [0.17, 1.0]
+
+[[api_feeds]]
+name = "en_xl"
+feed_size = "xl"
+parent_feed = "en_small"
+included_languages = ["en"]
+max_post_age_seconds = 64800  # 18h
+co_threshold = -1.0
+rejector_pass_threshold = 0.79
+notable_post_range = [0.0, 0.17]
+notable_post_threshold = 0.05
+
+[[api_feeds]]
+name = "intl_xl_high"
+feed_size = "xl"
+parent_feed = "intl_small"
+excluded_languages = ["en"]
+max_post_age_seconds = 86400  # 24h
+co_threshold = -1.5
+rejector_pass_threshold = 0.81
+notable_post_range = [0.17, 1.0]
+
+[[api_feeds]]
+name = "intl_xl"
+feed_size = "xl"
+parent_feed = "intl_small"
+excluded_languages = ["en"]
+max_post_age_seconds = 64800  # 18h
+co_threshold = 0.25
+rejector_pass_threshold = 0.81
+notable_post_range = [0.0, 0.17]
+notable_post_threshold = 0.08
+
+[[api_feeds]]
+name = "en_xxl_high"
+feed_size = "xxl"
+parent_feed = "en_small"
+included_languages = ["en"]
+max_post_age_seconds = 64800  # 18h
+co_threshold = -1.5
+rejector_pass_threshold = 0.81
+notable_post_range = [0.27, 1.0]
+
+[[api_feeds]]
+name = "en_xxl"
+feed_size = "xxl"
+parent_feed = "en_small"
+included_languages = ["en"]
+max_post_age_seconds = 43200  # 12h
+co_threshold = 0.25
+rejector_pass_threshold = 0.83
+notable_post_range = [0.0, 0.27]
+notable_post_threshold = 0.15
+
+[[api_feeds]]
+name = "intl_xxl_high"
+feed_size = "xxl"
+parent_feed = "intl_small"
+excluded_languages = ["en"]
+max_post_age_seconds = 64800  # 18h
+co_threshold = -0.5
+rejector_pass_threshold = 0.83
+notable_post_range = [0.27, 1.0]
+
+[[api_feeds]]
+name = "intl_xxl"
+feed_size = "xxl"
+parent_feed = "intl_small"
+excluded_languages = ["en"]
+max_post_age_seconds = 43200  # 12h
+co_threshold = 1.0
+rejector_pass_threshold = 0.85
+notable_post_range = [0.0, 0.27]
+notable_post_threshold = 0.15
+
+[[revision_feeds]]
+name = "revise_1h"
+latency_seconds = 3600  # 1h
+revision_rejector = "revision_rejector"
+revision_rejector_pass_threshold = 0.6
+
+[[revision_feeds]]
+name = "revise_3h"
+latency_seconds = 10800  # 3h
+revision_rejector = "revision_rejector"
+revision_rejector_pass_threshold = 0.75
+
+[[retry_feeds]]
+name = "retry_1h"
+latency_seconds = 2700  # 45m
+max_post_age_seconds = 2700  # 45m
+
+[[rl_rejectors]]
+rejector_name = "cn_rejector_1"
+model_alias = "rejector_primary"
+model_uri = "api.x.ai"
+temperature = 1.0
+num_samples = 5
+max_retries_llm = 4
+retry_base_delay = 120.0
+rejector_prompt = """
+Please determine whether the following proposed Community Note is likely to be found Helpful or Not Helpful for the associated post.
+
+Post:
+{post_link}
+
+Proposed Community Note:
+{note_text}
+
+Estimate how likely X Community Notes raters - including raters who often disagree with each other politically - are to rate the proposed note \
+Helpful, and report that likelihood as a score from 0.0 to 1.0.
+
+A note is likely to be rated Helpful when it:
+* Is accurate and directly supported by its source links.
+* Changes what a reader takes away from the post, by correcting a false or unsupported claim, supplying essential missing context, identifying \
+fabricated, AI-generated, edited or miscaptioned media, or flagging recycled content presented as new.
+* Addresses a post making a sincere statement of fact. Notes attached to jokes, hyperbole, sarcasm or opinions are rarely rated Helpful.
+* Is phrased so that readers on both sides of a disagreement would accept it.
+
+Accuracy is necessary but not sufficient. Most proposed notes are accurate; once you are satisfied that this one is, the decisive question is whether \
+it materially changes what a reader takes away from the post. An accurate, well-sourced note that does not change the takeaway is Not Helpful.
+
+A note is likely to be rated Not Helpful when it:
+* Is accurate but corrects a peripheral detail that does not change what a reader takes away from the post.
+* Takes a contested interpretive position (motive, framing, what "really" happened) instead of establishing a verifiable fact.
+* Cites sources that do not actually establish the claim it makes.
+* Editorializes, speculates, insults, or argues with the poster.
+
+When judging sources, what matters is whether a cited source actually establishes the note's claim. A single source that clearly establishes the claim \
+supports a note just as well as several do; do not give a note extra credit for citing more sources. An X post is strong evidence when the post itself \
+is what is in question, for example the original of an edited screenshot or an earlier identical post. A very short note can be maximally helpful; \
+brevity is not a defect.
+
+Judge the note only against the criteria above; do not introduce additional requirements. In particular, do not deduct for a note's style, tone, or \
+brevity, for wording you would have phrased differently, or for caveats it leaves out that would not change a reader's takeaway. A note that meets the \
+criteria is Helpful even if it is not the best possible note.
+
+Calibrate your score roughly as follows, and use intermediate values freely:
+* 0.9 and above - meets every criterion; you expect most raters to find it Helpful. Use this range for strong notes, and 1.0 when you cannot fault the \
+note.
+* around 0.7 - probably Helpful, with one weakness you can name.
+* around 0.5 - genuinely uncertain, or strong in some respects and weak in others.
+* around 0.3 - probably Not Helpful: accurate but immaterial, weakly supported, interpretive, or attached to a post that does not need a note.
+* 0.1 and below - inaccurate, abusive, or incoherent.
+
+Report the value that matches your confidence. Do not round to a convenient number, and do not default to the middle of the range when the evidence \
+points one way. Scores between 0.4 and 0.6 mean you genuinely cannot tell, and should be uncommon: if you can name the criterion the note clearly \
+meets or clearly fails, commit to a score outside that band.
+
+Return your score as JSON in a fenced code block:
+
+```json
+{{
+  "score": ...,
+  "reasoning": ...
+}}
+```
+
+Return only the JSON object inside the fence. Do not apply markdown formatting to any part of it.
+{suggested_sources}\
+"""
+
+[[screenshot_rejectors]]
+rejector_name = "screenshot_rejector"
+model_alias = "rejector_screenshot"
+model_uri = "api.x.ai"
+temperature = 1.0
+min_samples = 2
+max_samples = 5
+max_retries_llm = 3
+timeout = 900
+retry_base_delay = 120.0
+rejector_prompt = """
+INSTRUCTIONS:
+
+Evaluate a proposed Community Note for inadequate media sourcing. Score from 0.0 (extremely problematic) to 1.0 (not at all problematic).
+
+You will receive a post link, a proposed note, and screenshots of each URL cited in the note. Use your tools for viewing media on X \
+to examine any media embedded in the post itself. Treat URL screenshots \
+as the authoritative representation of media at each URL, even with partial rendering errors. If a screenshot is blank, missing, or shows \
+an error (e.g. 404), do NOT assume the URL's media supports the note. You may use browse_page to understand missing webpage text, but DO \
+NOT infer anything about media at a URL from its text content.
+
+SCORE 1.0 — NOT PROBLEMATIC:
+
+Score 1.0 if ANY of the following apply:
+* The post has no media, or the note makes no claims about the post media.
+* The post media is primarily text-based content (e.g. a screenshot of a news article, a quote overlay). Minor text like timestamps or \
+labels does not qualify.
+* The note's source links contain media that MATCHES the post media.
+
+SCORE 0.0 — PROBLEMATIC:
+
+Score 0.0 if ANY of the following apply:
+* The note refers to media the post doesn't contain.
+* The note merely identifies the post media as a cartoon (easily discernible by a reasonable person). Exception: notes about video \
+game footage passed off as real combat are acceptable and should score 1.0 if sourced appropriately.
+
+Additionally, score 0.0 if ALL of the following hold:
+1. The post contains media.
+2. The note makes claims about that media (e.g. reassigns it to a different event, claims a different context, contradicts what the \
+media depicts, or claims it is AI-generated).
+3. The note implies its source links support those claims.
+4. The source links do NOT contain media EXACTLY MATCHING the post media.
+
+...unless one of the exceptions below applies.
+
+EXCEPTIONS — WHEN MISSING EXACT MATCH IS ACCEPTABLE (SCORE 1.0):
+
+When all four conditions above are met but one of the following also applies, the note should score 1.0:
+
+Content visible in the media itself:
+* Elements within the media (e.g. AI watermark, timestamp, date, social media handle) establish it is fake or out of context, and the \
+note explains their significance. If the identifying content is text, it must be in the same language as both the note and the post.
+
+Text-based contradiction without media reassignment:
+* The note cites up-to-date sources that specifically contradict the post's claims. These sources may be entirely text-based. However, \
+the note MUST NOT reassign the media to another specific event without EXACTLY MATCHING media as evidence. The note MAY suggest the \
+media is AI-generated. Example: a note may cite sources calling a ship's alleged destruction misinformation, but MUST NOT claim the \
+image shows a different specific ship.
+
+Recantation or denial:
+* The original media poster recants and identifies the content as misleading, out of context, or AI-generated. (The originating account \
+may differ from the account that made the post the note is attached to.)
+* The post originates from a parody or satire account.
+* An entity (e.g. person or organization) depicted in the media states the media is fake, manipulated, or inaccurate.
+
+Identity disputes:
+* The note claims a person in the media is misidentified. The note MUST include sourcing with an image establishing either the true \
+identity (likeness matches the post media) or that the alleged person's likeness does not match.
+
+AI-generation claims by analogy:
+* The note claims the media is AI-generated and cites sources showing similar content has been AI-generated (e.g. AI cruise ship \
+sinking videos are common). The note MUST frame sources as identifying SIMILAR content and MUST NOT imply an exact match to the post media.
+
+OUTPUT FORMAT:
+
+Return your score as JSON in a fenced code block:
+
+```json
+{{
+  "score": ...,
+  "reasoning": ...
+}}
+```
+
+INPUTS:
+
+post: {post_link}
+
+proposed note:
+```
+{note_text}
+```
+"""
+
+[[recent_context_rejectors]]
+rejector_name = "recent_context_rejector"
+model_alias = "rejector_recent_context"
+model_uri = "api.x.ai"
+temperature = 1.0
+num_samples = 5
+crh_count = 100
+crnh_count = 100
+rejector_prompt = """You are a Community Notes classifier. Community Notes are user-contributed context annotations on posts (tweets) on X \
+(formerly Twitter). The notes you are evaluating are written by large-scale AI note-writing accounts.
+
+Your task: Given a candidate {note, post} pair and a set of prior {note, post, status} examples from the same AI writing system, predict \
+whether the candidate note is likely to be rated CURRENTLY_RATED_HELPFUL (CRH) or CURRENTLY_RATED_NOT_HELPFUL (CRNH).
+
+The primary goal is to detect notes that clearly repeat a known mistake pattern — i.e., notes that are substantially similar to specific \
+prior CURRENTLY_RATED_NOT_HELPFUL examples. It is MORE important to avoid blocking good notes than to catch every bad one. Err on the side \
+of allowing notes through.
+
+Classification categories:
+- LIKELY_HELPFUL: The candidate note resembles prior CURRENTLY_RATED_HELPFUL examples OR does not closely match any prior \
+CURRENTLY_RATED_NOT_HELPFUL examples. When in doubt, prefer this classification.
+- LIKELY_NOT_HELPFUL: ONLY use this classification when the candidate note is a clear, specific repeat of a prior mistake. You must be able \
+to point to one or more specific CURRENTLY_RATED_NOT_HELPFUL examples that share the same concrete failure pattern (e.g., same type of factual \
+error, same flawed argumentative approach on a similar topic, same type of source misuse). Superficial similarity is NOT sufficient — the \
+candidate must repeat a specific, identifiable mistake pattern.
+- TRICKY: The candidate note has some surface-level similarity to CURRENTLY_RATED_NOT_HELPFUL examples but does not clearly repeat a specific \
+mistake pattern. Use this when you see warning signs but cannot confidently identify a repeated mistake.
+- UNPRECEDENTED: The candidate note is not substantially similar to any of the provided prior examples.
+
+Decision rules:
+1. If you cannot identify a SPECIFIC prior CRNH example that shares the same concrete failure pattern → do NOT predict LIKELY_NOT_HELPFUL.
+2. If the candidate note has credible sources and directly addresses the post's claims, it is very unlikely to be LIKELY_NOT_HELPFUL, even if \
+it touches on a similar topic to a prior CRNH note.
+3. Topic similarity alone is never sufficient for LIKELY_NOT_HELPFUL — the candidate must repeat the same TYPE OF MISTAKE (e.g., same kind of \
+source problem, same kind of logical error, same kind of framing issue).
+
+Return your response as JSON with the following schema:
+{{
+  "prediction": "LIKELY_HELPFUL" | "LIKELY_NOT_HELPFUL" | "TRICKY" | "UNPRECEDENTED",
+  "confidence": "high" | "medium" | "low",
+  "reasoning": "Brief explanation of your classification",
+  "similar_examples": [
+    {{
+      "noteId": <int>,
+      "tweetId": <int>,
+      "note_text": "<first 100 chars>",
+      "post_text": "<first 100 chars>",
+      "status": "CURRENTLY_RATED_HELPFUL" | "CURRENTLY_RATED_NOT_HELPFUL",
+      "similarity_reason": "Brief explanation"
+    }}
+  ]
+}}
+
+Return ONLY valid JSON. No markdown formatting, no code blocks.
+"""
+
+[[revision_rejectors]]
+rejector_name = "revision_rejector"
+model_alias = "rejector_revision"
+model_uri = "api.x.ai"
+temperature = 0.7
+num_samples = 1
+rejector_prompt = """You evaluate Community Notes on X. Notes earn HELPFUL status only when contributors who historically disagree all find \
+them helpful.
+
+Given a POST, a BASELINE NOTE (which has not yet achieved HELPFUL status), and a CANDIDATE NOTE, predict the probability (0.0-1.0) that the candidate will be HELPFUL.
+
+Perform the following structured comparison before scoring.
+
+STEP 1: DECOMPOSE BOTH NOTES
+
+List the key components of each note:
+- What factual claims does each note make?
+- What sources/URLs does each note cite?
+- What is each note's main argument for why the post is misleading?
+
+STEP 2: IDENTIFY THE DELTAS
+
+For each component, classify it:
+- SHARED: Claim/source appears in both notes (possibly reworded)
+- ADDED: Claim/source appears only in the candidate (genuinely new information)
+- REMOVED: Claim/source appears only in the baseline (candidate dropped it)
+
+STEP 3: EVALUATE THE DELTAS
+
+For each ADDED element:
+- Is it a substantive new factual claim, or just a rewording of something already in the baseline?
+- Is the new source more authoritative than the baseline's sources?
+- Does the new information make the note more convincing to a skeptical reader?
+
+For each REMOVED element:
+- Did removing it make the note more concise and focused, or did it lose important information?
+
+STEP 4: SCORE
+
+Base the score primarily on the quality and quantity of meaningful ADDED elements:
+
+- No meaningful additions (only shared/removed content, or additions are just rewordings): 0.10-0.25
+  The candidate is essentially the same argument and will likely share the baseline's fate.
+
+- 1 meaningful addition (a genuinely new claim or notably better source): 0.30-0.50
+  Some improvement but uncertain if enough to change the outcome.
+
+- 2+ meaningful additions, or 1 addition that fundamentally changes the note's effectiveness: 0.55-0.75
+  Clear improvement that could earn different results from raters.
+
+- Exceptional additions with primary/authoritative sources: 0.75-0.85
+
+Adjust down if:
+- Post doesn't need a note (opinion/humor): cap at 0.15
+- Candidate makes clearly inaccurate claims: cap at 0.20
+- Removals lost critical information: -0.10
+
+Respond with ONLY a JSON object:
+{{"score": <float 0.0-1.0>, "reasoning": "<list ADDED and REMOVED elements, then explain scoring>"}}
+
+POST: {post_link}
+
+BASELINE NOTE: {baseline_note}
+
+CANDIDATE NOTE: {candidate_note}
+"""
+
+[[grok_writers]]
+writer_name = "cn_writer_1"
+model_alias = "writer_primary"
+model_uri = "api.x.ai"
+max_retries_llm = 4
+retry_base_delay = 120.0
+api_feeds = ["en_small", "en_large", "en_xl", "en_xl_high", "en_xxl", "en_xxl_high", "intl_small", "intl_large", "intl_xl", "intl_xl_high", "intl_xxl", "intl_xxl_high"]
+revision_feeds = ["revise_1h", "revise_3h"]
+retry_feeds = ["retry_1h"]
+length_restriction = """
+- The proposed note should be 280 characters or less, counting each source URL as a single character. Avoid using sentence fragments to achieve the \
+character limit.
+"""
+writer_prompt = """
+Please write a Community Note for this post
+{post_link}
+{suggested_sources}
+Follow these guidelines:
+- Good community notes are often 1-2 sentences, and should never be longer than 4 sentences.
+{length_restriction}- Concise notes avoid unnecessary words, opinion, speculation, and any unusual formatting (e.g. no bolding/underlining/emojis).
+- The note must include at least 1 source URL, and should display source URLs without any additional markup, brackets or labels.
+- Do not include any source URLs without first retrieving the URL with your page browsing tool and confirming that the content of the URL supports the \
+claims in the proposed Community Note.
+- If the source URL is an X post, you should retrieve the URL with your X thread fetching tool instead of your page browsing tool.
+- The full response must end after the proposed note and any associated source URLs (i.e. there should be no additional explanation or justification \
+following the note).
+- Any proposed note must be in the same language as the original post.
+
+If the post does not need a community note (either because the original post is not misleading, or does not contain any concrete fact-checkable \
+claims), then your response should simply be "NO NOTE NEEDED.".
+
+If the post may need a community note, but you weren't able to find enough concrete evidence to write an ironclad community note, then your response \
+should be "NOT ENOUGH EVIDENCE TO WRITE A GOOD COMMUNITY NOTE.".
+"""
+
+[[grok_writers]]
+writer_name = "prod_grok"
+model_alias = "writer_secondary"
+model_uri = "api.x.ai"
+api_feeds = ["en_small", "en_large", "en_xl", "en_xl_high", "en_xxl", "en_xxl_high", "intl_small", "intl_large", "intl_xl", "intl_xl_high", "intl_xxl", "intl_xxl_high"]
+revision_feeds = ["revise_1h", "revise_3h"]
+retry_feeds = ["retry_1h"]
+length_restriction = """
+IMPORTANT: The proposed note must be 280 characters or less, counting each source URL as a single character. Avoid using \
+sentence fragments to achieve the character limit.
+"""
+writer_prompt = """
+Check out the X post at the following link: {post_link}
+
+I could use your help determining the following:
+
+1. Is it inaccurate or potentially misleading? Focus on the core claims: Check if the post contains false statements, distortions, or \
+implications that could reasonably lead most readers to an incorrect understanding of the facts presented. Be sure to search the web, news \
+sites, and X for information. Searching X might be particularly important if the post is from within the last few hours and might relate to \
+breaking events.
+
+2. If yes, is it sufficiently inaccurate that people from different points of view are likely to find a Community Note helpful? Or is the \
+inaccuracy pretty minor or inconsequential? If the post is factually accurate but could benefit from additional context, explain what additional \
+context might be helpful, but do not proceed beyond this step in writing a proposed Community Note unless the potentially misleading element is \
+substantial. (People don't like nitpicky Community Notes on posts where the main point is correct or reasonable.) If the post is substantially a \
+statement of opinion, or likely to be considered by many as satire or parody, err on the side of not writing a note.
+
+3. If yes, what should that Community Note say? Community Notes are found most helpful when they're written with neutral tone and language, are \
+simple and easy to understand, appeal to people on both sides of the political spectrum (or who tend to disagree on the topic of the post), and \
+focus on the key piece (or pieces) of information that a reader would want to know to understand why a post might be misleading. The note needs \
+to be 280 characters or less, and must link to sources that people from different points of view will find trustworthy. Together, the sources need \
+to support all points made in the note. Calculate character count with code, treating each link as 1 character.
+
+Please go through the steps above, proceeding through them based on the answer to the prior step. If you end up writing a note, please share that \
+note and then do the following analysis:
+
+A. Read the note as if you are someone who is predisposed to believe the post, and be skeptical of the note. What could be improved about the note \
+from that reader's perspective? Make those changes.
+
+B. Read the note as if you are someone who tends to distrust most mainstream media sources, as well as official sources (such as from a government). \
+What could be improved about the sources you've cited from that reader's perspective, yet still support the note? Make those changes.
+
+C. Read the note and evaluate whether any pieces of information seem extraneous. If so, what could be improved to remove extraneous information? \
+Make those changes.
+
+D. Read the note and evaluate whether any portion could be unclear, confusing, or not self-explanatory (for example requiring domain knowledge to \
+understand). If so, what could be improved to make it very clear and easy to understand? Make those changes.
+
+E. Read the note as if you are predisposed to agree with the post, like the post author, and generally skeptical that notes are necessary. Perhaps \
+you're even likely to view notes as a form of harassment or argument. You're predisposed to rating the note "Note not needed" even if it's correct. \
+You might feel offended or put off that someone's trying to correct the post. What could be improved about the note from that reader's perspective? \
+Make those changes.
+
+F. Verify that all your sources indeed support the note, and that the links resolve to real web pages you can read.
+
+G. Read the note and evaluate whether any statements in it could be interpreted as opinion or speculation. If so, what could be improved to remove \
+opinionated statements or speculation? Make those changes.
+
+H. Read the note and make sure that you haven't claimed that media on X is an exact match to media referenced in a source link found in the note \
+unless you have actually fetched and viewed the media in the source link. For example, if the X post contains video of a sinking cruise ship and \
+the video seems to be AI generated, you MAY write a note citing fact checks pointing out that AI depictions of cruise ships sinking are common and \
+no cruise ships have recently sunk, but DO NOT write a note with an unverified claim or implication that the media in the X post exactly matches the \
+media in the reference links contained in the note.
+
+I. Now, take the latest version of the note with all your updates from steps A-H, and verify that the note is 280 characters or less, and includes \
+sources, with URLs counting as 1 character each. Use your available code tool to calculate the length. If the count is over 280 characters, with URLs \
+counting as 1 character each, then repeat steps A-H, making updates to the note to ensure it's under 280 characters.
+
+If you choose to write a note, please output the note including the associated URLs. The note and URLs should be your entire final response, with \
+nothing else before or after.
+
+If the post does not need a community note (either because the original post is not misleading, \
+or does not contain any concrete fact-checkable claims), then your response should simply be "NO NOTE NEEDED.".
+
+If the post may need a community note, but you weren't able to find enough concrete evidence to \
+write an ironclad community note, then your response should be "NOT ENOUGH EVIDENCE TO WRITE A GOOD COMMUNITY NOTE.".
+
+If you decide to write a Community Note, the note MUST be in the same language as the original post. \
+For example, if the original post is in Japanese, the proposed Community Note must be in Japanese as well.
+
+DO NOT, under any circumstances, include any markup or formatting in your response (e.g. no bolding, underlining, or emojis). In particular, you \
+should avoid using "*", "**", "_" or "#" sequences in your proposed note to indicate bold, italics or section headings. Any proposed note \
+should display source URLs as plain text without any additional markup, brackets or labels.
+{length_restriction}
+Thank you!
+"""
