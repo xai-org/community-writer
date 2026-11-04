@@ -600,10 +600,12 @@ class RecentContextRejector(AliasedModelConfig):
     )
     crh_count: int = Field(
         default=100,
+        ge=0,
         description="Number of recent CRH examples to include as context",
     )
     crnh_count: int = Field(
         default=100,
+        ge=0,
         description="Number of recent CRNH examples to include as context",
     )
 
