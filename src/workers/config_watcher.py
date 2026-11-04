@@ -108,6 +108,17 @@ async def config_watcher(
                                 f"ERROR - Rejecting config {new_timestamp}: "
                                 f"revision_feeds changed. Restart the service to change revision feeds."
                             )
+                        elif {
+                            (rf.name, rf.latency_seconds, rf.max_post_age_seconds)
+                            for rf in current_config.retry_feeds
+                        } != {
+                            (rf.name, rf.latency_seconds, rf.max_post_age_seconds)
+                            for rf in new_config.retry_feeds
+                        }:
+                            logger.error(
+                                f"ERROR - Rejecting config {new_timestamp}: "
+                                f"retry_feeds changed. Restart the service to change retry feeds."
+                            )
                         else:
                             await config_state.update(new_config)
                             update_active_symlink(
