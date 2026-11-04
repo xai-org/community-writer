@@ -600,10 +600,12 @@ class RecentContextRejector(AliasedModelConfig):
     )
     crh_count: int = Field(
         default=100,
+        ge=0,
         description="Number of recent CRH examples to include as context",
     )
     crnh_count: int = Field(
         default=100,
+        ge=0,
         description="Number of recent CRNH examples to include as context",
     )
 
@@ -1166,6 +1168,11 @@ class ArenaConfig(StrictConfigModel):
                 for start, end in w.enabled_ranges:
                     boundary_points.add(start)
                     boundary_points.add(end)
+            # Submission range edges too, or a gap that starts inside a
+            # submission range is never tested.
+            for start, end in root_feed.submission_ranges:
+                boundary_points.add(start)
+                boundary_points.add(end)
             sorted_points = sorted(boundary_points)
 
             submission_set: set[int] = set()
@@ -1263,6 +1270,13 @@ class ArenaConfig(StrictConfigModel):
     @model_validator(mode="after")
     def validate_feed_size_priority(self) -> "ArenaConfig":
         if not self.feed_size_priority:
+            # Timed feed items are routed through feed_size_priority; with an
+            # empty list every revision and retry item is dropped as not routable.
+            if self.revision_feeds or self.retry_feeds:
+                raise ValueError(
+                    "feed_size_priority must list every feed_size from api_feeds "
+                    "when revision_feeds or retry_feeds are configured"
+                )
             return self
         config_sizes = {f.feed_size for f in self.api_feeds}
         priority_sizes = set(self.feed_size_priority)
@@ -1298,6 +1312,9 @@ class ArenaConfig(StrictConfigModel):
             for f in feeds:
                 if f.included_languages:
                     explicit_langs.update(f.included_languages)
+                # An excluded language is routed differently from "__other__",
+                # so it needs its own coverage check.
+                explicit_langs.update(f.excluded_languages)
             lang_classes = list(explicit_langs) + ["__other__"]
 
             for lang_class in lang_classes:

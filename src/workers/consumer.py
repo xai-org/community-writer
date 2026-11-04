@@ -271,8 +271,21 @@ async def consumer(
 
         prior_examples: PriorExamples | None = None
         prior_post_notes: list = []
+        feed_def = arena_config.get_api_feed_def(post.api_feed)
+        rejector_config = next(
+            (
+                r
+                for r in arena_config.recent_context_rejectors
+                if r.rejector_name == feed_def.recent_context_rejector
+            ),
+            None,
+        )
         if submitted_note_cache is not None:
-            prior_examples = await submitted_note_cache.get_prior_examples(100, 100)
+            # Only the recent context rejector reads prior_examples.
+            if rejector_config is not None:
+                prior_examples = await submitted_note_cache.get_prior_examples(
+                    rejector_config.crh_count, rejector_config.crnh_count
+                )
             prior_post_notes = await submitted_note_cache.get_prior_notes_for_post(
                 post.post.post_id
             )
@@ -443,6 +456,19 @@ async def consumer(
                 await asyncio.sleep(1.0)
             continue
 
+        # Wait for RAM before taking a post off its queue: once dequeued, a post
+        # that is skipped here is never queued again.
+        if min_available_ram_gb is not None:
+            available_gb = psutil.virtual_memory().available / (1024**3)
+            if available_gb < min_available_ram_gb:
+                logger.info(
+                    f"Waiting for RAM — "
+                    f"{available_gb:.1f} GB available, need {min_available_ram_gb:.1f} GB "
+                    f"({len(in_flight)} tasks in flight)"
+                )
+                await asyncio.sleep(5.0)
+                continue
+
         post = _poll_feeds(list(api_feeds) + list(timed_feeds))
         if post is None:
             if in_flight:
@@ -479,17 +505,6 @@ async def consumer(
         elapsed_since_last = time.monotonic() - last_dispatch_time
         if elapsed_since_last < min_seconds_between_posts:
             await asyncio.sleep(min_seconds_between_posts - elapsed_since_last)
-
-        if min_available_ram_gb is not None:
-            available_gb = psutil.virtual_memory().available / (1024**3)
-            if available_gb < min_available_ram_gb:
-                logger.info(
-                    f"Waiting for RAM — "
-                    f"{available_gb:.1f} GB available, need {min_available_ram_gb:.1f} GB "
-                    f"({len(in_flight)} tasks in flight)"
-                )
-                await asyncio.sleep(5.0)
-                continue
 
         last_dispatch_time = time.monotonic()
         feed_label = post.timed_feed if post.timed_feed else post.api_feed
