@@ -1312,6 +1312,9 @@ class ArenaConfig(StrictConfigModel):
             for f in feeds:
                 if f.included_languages:
                     explicit_langs.update(f.included_languages)
+                # An excluded language is routed differently from "__other__",
+                # so it needs its own coverage check.
+                explicit_langs.update(f.excluded_languages)
             lang_classes = list(explicit_langs) + ["__other__"]
 
             for lang_class in lang_classes:
