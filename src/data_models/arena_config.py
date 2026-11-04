@@ -1166,6 +1166,11 @@ class ArenaConfig(StrictConfigModel):
                 for start, end in w.enabled_ranges:
                     boundary_points.add(start)
                     boundary_points.add(end)
+            # Submission range edges too, or a gap that starts inside a
+            # submission range is never tested.
+            for start, end in root_feed.submission_ranges:
+                boundary_points.add(start)
+                boundary_points.add(end)
             sorted_points = sorted(boundary_points)
 
             submission_set: set[int] = set()
