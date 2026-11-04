@@ -271,8 +271,21 @@ async def consumer(
 
         prior_examples: PriorExamples | None = None
         prior_post_notes: list = []
+        feed_def = arena_config.get_api_feed_def(post.api_feed)
+        rejector_config = next(
+            (
+                r
+                for r in arena_config.recent_context_rejectors
+                if r.rejector_name == feed_def.recent_context_rejector
+            ),
+            None,
+        )
         if submitted_note_cache is not None:
-            prior_examples = await submitted_note_cache.get_prior_examples(100, 100)
+            # Only the recent context rejector reads prior_examples.
+            if rejector_config is not None:
+                prior_examples = await submitted_note_cache.get_prior_examples(
+                    rejector_config.crh_count, rejector_config.crnh_count
+                )
             prior_post_notes = await submitted_note_cache.get_prior_notes_for_post(
                 post.post.post_id
             )
