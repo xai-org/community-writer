@@ -1263,6 +1263,13 @@ class ArenaConfig(StrictConfigModel):
     @model_validator(mode="after")
     def validate_feed_size_priority(self) -> "ArenaConfig":
         if not self.feed_size_priority:
+            # Timed feed items are routed through feed_size_priority; with an
+            # empty list every revision and retry item is dropped as not routable.
+            if self.revision_feeds or self.retry_feeds:
+                raise ValueError(
+                    "feed_size_priority must list every feed_size from api_feeds "
+                    "when revision_feeds or retry_feeds are configured"
+                )
             return self
         config_sizes = {f.feed_size for f in self.api_feeds}
         priority_sizes = set(self.feed_size_priority)
