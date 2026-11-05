@@ -40,6 +40,8 @@ def load_environment_variables(x_key_sets: List[str]) -> EnvironmentVariables:
             missing_vars.append(f"X_ACCESS_TOKEN_{upper_suffix}")
         if not access_token_secret:
             missing_vars.append(f"X_ACCESS_TOKEN_SECRET_{upper_suffix}")
+        if missing_vars:
+            continue
         x_api_keys[suffix] = KeySet(
             x_api_key=api_key,
             x_api_secret_key=api_secret_key,
