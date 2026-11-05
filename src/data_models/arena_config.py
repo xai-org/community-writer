@@ -132,7 +132,8 @@ class FeedDefinition(StrictConfigModel):
     notable_post_range: tuple[float, float] | None = Field(
         default=None,
         description="Notable-post score range [floor, ceiling) for routing. "
-        "Posts with notable_post_prediction in [floor, ceiling) are routed to this feed. "
+        "Posts with notable_post_prediction in [floor, ceiling) are routed to this feed; "
+        "a ceiling of 1.0 also accepts a prediction of exactly 1.0. "
         "None means accept all scores.",
     )
     notable_post_threshold: float | None = Field(

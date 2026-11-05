@@ -53,7 +53,11 @@ def _filter_by_notable_post_range(
         p
         for p in posts
         if p.notable_post_prediction is not None
-        and floor <= p.notable_post_prediction < ceiling
+        and floor <= p.notable_post_prediction
+        and (
+            p.notable_post_prediction < ceiling
+            or p.notable_post_prediction == ceiling == 1.0
+        )
     ]
 
 
