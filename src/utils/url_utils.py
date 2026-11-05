@@ -2,7 +2,12 @@ import re
 import httpx
 
 
-URL_PATTERN = re.compile(r'https?://[^\s<>"\'\)]+[^\s<>"\'\)\.,;:!?]')
+_PAREN_GROUP = r'\([^\s<>"\'()]*\)'
+_LONE_OPEN_PAREN = r'\((?![^\s<>"\'()]*\))'
+URL_PATTERN = re.compile(
+    rf'https?://(?:{_PAREN_GROUP}|{_LONE_OPEN_PAREN}|[^\s<>"\'()])+'
+    rf'(?:{_PAREN_GROUP}|{_LONE_OPEN_PAREN}|[^\s<>"\'().,;:!?])'
+)
 
 
 def remove_urls(text: str) -> str:
